@@ -1,0 +1,135 @@
+Pure Tcl 9.0 JSON library
+
+package require json-lib
+
+Creates ::json::json ensemble
+
+A JSON-value is a Tcl list with a type and value (or just a type for null, true,
+false).
+
+{0}		null
+{t}		true
+{f}		false
+{s string}	string is a normal Tcl un-escaped string
+{n number}	number is a Tcl numeric value
+{a list}	list is a Tcl list of JSON-values
+{o dict}	dict is a Tcl dict with un-escaped strings for keys, JSON-value
+		for the associated value
+{j json}	json is a JSON string, pre-encoded for efficiency
+
+Example:
+::json::json pretty [::json::json encode \
+	{o {array {a {{n 3.14} {s {Tcl string}} t} null 0}]
+
+returns:
+{
+  "array": [
+    3.14,
+    "Tcl string",
+    true
+  ]
+}
+
+::json::json::decode {{"array":[3.14,"Tcl string",true]}}
+
+returns:
+o {array {a {{n 3.14} {s {Tcl string}} t}}}
+
+Parsing, JSON string to JSON-value:
+parse json ?index?
+	Parse the JSON string in json, return a JSON-value and an index
+	If index isn't specified, it defaults to 0.
+	The returned index will skip over any trailing whitespace after a valid
+	JSON item.  If no valid JSON is found, it will return an empty list and
+	the index of the first non-whitespace character.
+decode	json ?varname?
+	If varname is not specified, then decode will return the
+	JSON-value of the JSON string.	An error will be thrown if there
+	are any trailing non-whitespace characters following, or if it
+	is not a valid JSON string.  If a variable name is provided,
+	the JSON-value will be returned in that variable and the rest
+	of the string will be returned as the result (skipping any trailing
+	whitespace).
+decode-multi json
+	Takes a string with multiple JSON strings, optionally separated by
+	whitespace. Returns a list with all of the corresponding JSON-values;
+	throws an error if any characters remain (i.e. not valid JSON).
+
+Encoding, JSON-value to JSON string:
+encode	jval
+	Returns the JSON string corresponding to the JSON-value, without any
+	extra whitespace.  Does not validate the structure.
+encode-multi jval_list
+	Returns a JSON string for each JSON-value in the provided list,
+	separated by newlines.
+
+Validation of JSON-value and number string:
+valid	jval
+	Validate a JSON-value, recursively validating nested values in objects
+	and arrays.  Returns either "valid" or an error string.
+valid-number value
+	Validates that the value is a valid JSON number.  Tcl numbers should
+	always be valid JSON numbers.  There is no attempt to validate the
+	conversion of JSON and Tcl numbers; a number parsed from a JSON string
+	will not be modified or converted.  Returns "valid" or an error string.
+
+Formatting, add whitespace to a JSON string (not a JSON-value)
+pretty	string ?tab? ?indent?
+	Add whitespace to pretty-print a JSON string.  tab is how much to
+	indent each level, indent is the initial indentation string.  The
+	default for tab is two spaces, the default for indent is empty.
+	No other conversions are done (strings and numbers will remain in
+	the same format they were).  If the string is not valid JSON, it will
+	throw an error.  The return value will be the formatted string.  This
+	will process multiple JSON items in the string.
+
+Utility routines:
+get	jval ?selector ...?
+	Get the JSON-value after recursively walking a structure.  The selector
+	is a key for an object, or an index for an array.
+getdef	default jval ?selector ...?
+	Gets a value the same as get, but returns the default jval if any
+	errors (invalid structure, missing key, invalid index)
+type	jval ?selector ...?
+	Get the type of the item after walking the structure as with get.
+	Returns "null" "boolean" "number" "string" "array" "object" "json" or
+	"invalid"
+value	jval ?selector ...?
+	Get the value of the item after walking the structure.
+array-size jval
+	Return the size of the array, error if not a valid array
+object-names
+	Return a list of object names (Tcl strings), error if not a valid object
+extract	jval type ?selector ...?
+	Walk the object, as with get, then extract a uniform array or
+	object into a corresponding Tcl list or dict made up of Tcl
+	values, not JSON-values.
+
+Constructors:
+array	?jval ...?
+	Create an array from the arguments passed (which must be valid
+	JSON-values)
+array-add varname ?jval ...?
+	Append items to an existing array, error if it is not a valid array.
+array-list list
+	Make a Tcl list of JSON-values into an array
+object	?name jval ...?
+	Create an object with pairs of names (Tcl strings) and JSON-values.
+object-add varname ?name jval ...?
+	Add items to an existing object, error if it is not a valid object.
+object-dict dict
+	Make a Tcl dict (with Tcl keys and JSON-values) into an object
+null	Returns the constant "null" JSON-value
+true	Returns the constant "true" JSON-value
+false	Returns the constant "false" JSON-value
+boolean	bool
+	Returns a JSON-value for true or false based on a Tcl boolean
+number	value
+	Returns a JSON-value number with the value given - throws an error if
+	the value specified is not a valid JSON format number.
+string	value
+	Returns a JSON-value string
+json-embed jval
+	Returns an embedded JSON string (pre-formatted encoded JSON)
+json-array list
+	Returns an embedded JSON array from a list of JSON strings.
