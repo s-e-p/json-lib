@@ -19,7 +19,7 @@ false).
 
 Example:
 ::json::json pretty [::json::json encode \
-	{o {array {a {{n 3.14} {s {Tcl string}} t} null 0}]
+        {o {array {a {{n 3.14} {s {Tcl string}} t} null 0}}}]
 
 returns:
 {
