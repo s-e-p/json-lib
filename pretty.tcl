@@ -30,13 +30,13 @@ proc parse-json {string index tab level first} {
 	}
 
 	set start [lindex $what 0]
-       	set end [lindex $what 1]
+	set end [lindex $what 1]
 	set index [lindex $skip 0]
 
 	set what [string range $string $start $end]
 	set skip [string index $string $index]
 
-	set indent $tab$level
+	set indent $level$tab
 
 	switch $what {
 	\[	{
